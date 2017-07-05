@@ -127,10 +127,16 @@ class Smile_VirtualCategories_Model_Observer
         $filteredPositions = array_filter($positions, 'is_numeric');
         $resourceModel     = Mage::getResourceModel("smile_virtualcategories/catalog_virtualCategory_product_position");
         $previousProducts  = $resourceModel->getProductIdsByCategory($category);
+        $previousPosition  = $resourceModel->getByProductIds($previousProducts);
 
+        foreach ($previousPosition as $position) {
+            if (!isset($filteredPositions[$position["product_id"]])) {
+                $filteredPositions[$position["product_id"]] = $position['position'];
+            }
+        }
         $resourceModel->saveProductsPositions($filteredPositions, $category);
 
-        $productIdsToReindex = array_unique(array_merge($previousProducts, array_keys($filteredPositions)));
+        $productIdsToReindex = array_keys($filteredPositions);
 
         if (empty($productIdsToReindex)) {
             return $this;
